@@ -59,17 +59,50 @@ for i=1:length(lsssfile)
     end
 end
 
-%
-%
-
-
 %% Select survey
 for An=1:2 %Both (1) existing and (2) empty db
    for i=1:length(lsssfile)
+       %% Ensure that LSSS is disconnected from dB (When the API is upgraded I can do this within the API).
+       copyfile('application_edited.xml','C:\Users\nilsolav\.ApplicationData\lsss\config\application.xml')
+%         % Wait until the API is dead (from last run)
+%         exe=true;
+%         while exe
+%             try
+%                 webread([URLprefix 'lsss/application/ready']);
+%                 pause(2) % Wait 2 sec and try again
+%             catch
+%                 exe=false;
+%             end
+%         end
+%         
+%         % Set the db flag before start up (this is really ugly coding, but
+%         % works). The problem is that we need LSSS to start disconnected
+%         % from the dd, but when we store to the db this flag is changed.
+%         % This could be changed after storing, but if execution fails the
+%         % flag will not be changed. I prefer to start up LSSS on an empty
+%         % dB, diconnect the db, save preferences and exit.
+%         
+%         % Delete dB
+%         rmdir(fullfile(MainDir,'lsss_DB'), 's')
+%         % Copy a clean db
+%         copyfile(fullfile(MainDir,'lsss_DB_empty'),fullfile(MainDir,'lsss_DB'))
+%         % Start LSSS
+%         lsssCommand = ['cmd.exe /c "C:\Program Files (x86)\Marec\' lsssVersion '\lsss\LSSS.bat"&'];
+%         system(lsssCommand);
+%         % Get the setup information from LSSS
+%         str = webread([URLprefix 'lsss/application/config/xml']);
+%         % Change the JavaDB connection flag to false
+%         str2 = strrep(str,'<connection name="JavaDB" connected="true">','<connection name="JavaDB" connected="false">') ;
+%         % Push it back thourgh the API
+%         webwrite([URLprefix 'lsss/application/config/xml'],str2,weboptions('MediaType','application/xml','RequestMethod', 'post','Timeout',Inf));
+%         % Save setting
+%         webread([URLprefix,'/lsss/survey/save'])
+%         %Exit LSSS
+%         
         %% Copy db (or set up empty db) and work files 
         % Delete existing local database. This needs to be done prior to opening
         % lsss since lsss connect to the db at startup
- 
+        
         % Wait until the API is dead (from last run)
         exe=true;
         while exe
@@ -80,7 +113,9 @@ for An=1:2 %Both (1) existing and (2) empty db
                 exe=false;
             end
         end
-        rmdir(fullfile(MainDir,'lsss_DB'), 's')
+        try
+            rmdir(fullfile(MainDir,'lsss_DB'), 's')
+        end
         % Copy new or existing database
         if A{An}
             % Copy the database from ces.imr.no:
