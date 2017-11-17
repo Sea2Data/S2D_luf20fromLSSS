@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<unit name="ApplicationConfiguration" version="0.9">
+   <configuration>
+      <parameters/>
+   </configuration>
+   <unit name="PluginConf">
+      <configuration>
+         <parameters>
+            <parameter name="LsssServer">true</parameter>
+            <parameter name="Promus">true</parameter>
+         </parameters>
+      </configuration>
+   </unit>
+   <unit name="DatabaseConf">
+      <configuration>
+         <connection name="JavaDB" connected="false">
+            <parameters>
+               <parameter name="DatabaseName">lsss_DB</parameter>
+               <parameter name="Directory">D:\DATA</parameter>
+               <parameter name="UserName"/>
+               <parameter name="SavePassword">false</parameter>
+            </parameters>
+         </connection>
+      </configuration>
+   </unit>
+   <unit name="DirectoryConf">
+      <configuration>
+         <parameters>
+            <parameter name="MainDir">D:\DATA</parameter>
+            <parameter name="SurveyDirStructure">default</parameter>
+            <parameter name="BackupDirStructure">imr</parameter>
+            <parameter name="Advanced">false</parameter>
+         </parameters>
+      </configuration>
+   </unit>
+   <unit name="PreprocessingConf">
+      <configuration>
+         <ConfigFileSettings>
+            <ModuleConfiguration>
+               <parameter name="ModuleConfiguration" ref="KoronaConfigDir">KoronaModuleSetup_example_FULL_MULTIFREQUENCY.cds</parameter>
+               <parameter name="AdditionalModuleConfiguration"/>
+            </ModuleConfiguration>
+            <HorizontalTransducerOffsets>
+               <parameter name="HorizontalTransducerOffsets" ref="KoronaConfigDir">HorizontalTransducerOffsets.xml</parameter>
+            </HorizontalTransducerOffsets>
+            <VerticalTransducerOffsets>
+               <parameter name="VerticalTransducerOffsets" ref="KoronaConfigDir">VerticalTransducerOffsets.xml</parameter>
+            </VerticalTransducerOffsets>
+            <TransducerRanges>
+               <parameter name="TransducerRanges" ref="KoronaConfigDir">TransducerRanges.xml</parameter>
+            </TransducerRanges>
+            <Categorization>
+               <parameter name="Categorization" ref="KoronaConfigDir">categorizationBasic\categorization.xml</parameter>
+            </Categorization>
+            <Plankton>
+               <parameter name="Plankton" ref="KoronaConfigDir">Plankton.xml</parameter>
+            </Plankton>
+            <BroadbandNotchFilters>
+               <parameter name="BroadbandNotchFilters" ref="KoronaConfigDir">BroadbandNotchFilters.xml</parameter>
+            </BroadbandNotchFilters>
+            <PulseCompressionFilters>
+               <parameter name="PulseCompressionFilters"/>
+            </PulseCompressionFilters>
+            <BroadbandSplitterBands>
+               <parameter name="BroadbandSplitterBands" ref="KoronaConfigDir">BroadbandSplitterBands.xml</parameter>
+            </BroadbandSplitterBands>
+         </ConfigFileSettings>
+      </configuration>
+      <unit name="PromusAppPreprocessingConf">
+         <configuration>
+            <ConfigFileSettings>
+               <PromusModuleConfiguration>
+                  <parameter name="PromusModuleConfiguration" ref="KoronaConfigDir">PromusModuleSetup_example_NORMAL.cds</parameter>
+                  <parameter name="AdditionalPromusModuleConfiguration"/>
+               </PromusModuleConfiguration>
+               <PromusTransducer>
+                  <parameter name="PromusTransducer" ref="KoronaConfigDir">PromusTransducer.xml</parameter>
+               </PromusTransducer>
+            </ConfigFileSettings>
+         </configuration>
+      </unit>
+   </unit>
+   <unit name="AppMiscConf">
+      <configuration>
+         <parameters>
+            <parameter name="MapURL">http://aisonline.com/wms/wms.asp?wms=WorldMap&amp;</parameter>
+            <parameter name="MapLayers">Bathymetry,Countries,Topography,Hillshading,Builtup areas,Coastlines,Waterbodies,Inundated,Rivers,Streams,Railroads,Highways,Roads,Trails,Borders,Cities,Settlements,Spot elevations,Airports,Ocean features</parameter>
+            <parameter name="MaxPings">10000</parameter>
+            <parameter name="PingLoading">LONGEST_GAP_LEFT_TO_RIGHT</parameter>
+            <parameter name="Preload">true</parameter>
+            <parameter name="PreloadPreprocessed">false</parameter>
+            <parameter name="UseEnglish">true</parameter>
+            <parameter name="VerticalScrollBar">true</parameter>
+            <parameter name="CheckForUpdate">WEEKLY</parameter>
+         </parameters>
+      </configuration>
+      <unit name="LsssServerConf">
+         <configuration>
+            <parameters>
+               <parameter name="ServerActive">true</parameter>
+               <parameter name="ServerPort">8000</parameter>
+            </parameters>
+         </configuration>
+      </unit>
+   </unit>
+</unit>

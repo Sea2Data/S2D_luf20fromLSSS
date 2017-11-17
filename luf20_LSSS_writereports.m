@@ -1,49 +1,50 @@
 % This script takes the '.lsss' file as input, open the LSSS using
 % the api functionality and writes zipped report files to the 'zipfile'.
 
+% IMPORTANT NOTES:
+% 1.The LSSS configuration file needs the connected flag set to false:
+% <connection name="JavaDB" connected="false">. The flag is found in 
+% C:\Users\nilsolav\.ApplicationData\lsss\config\application.xml
+% 
+% 2.An empty db needs to be generated using LSSS and put under
+% D:/DATA/lsss_db_empty 
+%
+% 3. D:\DATA\lsss_db must exist
+%
+
 %% Setup
 clear all
-A{1}=true;  % Cooy existing db
+A{1}=true;  % Copy existing db
 A{2}=false; % Fill empty db
 
 URLprefix = 'http://localhost:8000/';
 %lsssVersion = 'lsss-2.3.0-alpha-20171102-1008';
-lsssVersion = 'lsss-2.3.0-alpha-20171110-1154';
+%lsssVersion = 'lsss-2.3.0-alpha-20171110-1154';
+lsssVersion = 'lsss-2.3.0-alpha-20171116-1132';
 
 MainDir = 'D:\DATA\';% The location of the local LSSS dB
+ScratchDir = 'D:\DATA\';
 
-reportfile{1}='S2016837_PEROS_3317_local';
-reportfile{2}='S2016837_PEROS_3317_server';
-reportfile{3}='S2016114_PGOSARS_4174_local';
-reportfile{4}='S2016114_PGOSARS_4174_server';
+reportfile{1}='S2016837_PEROS_3317';
+reportfile{2}='S2016114_PGOSARS_4174';
 
-datapath{1} = 'D:\DATA\S2016837_PEROS_3317';
-datapath{2} = '\\ces.imr.no\cruise_data\2016\S2016837_PEROS_3317';
-datapath{3} = 'D:\DATA\S2016114_PGOSARS_4174';
-datapath{4} = '\\ces.imr.no\cruise_data\2016\S2016114_PGOSARS_4174';
+datapath{1} = '\\ces.imr.no\cruise_data\2016\S2016837_PEROS_3317';
+datapath{2} = '\\ces.imr.no\cruise_data\2016\S2016114_PGOSARS_4174';
 
 lsssfile{1} = fullfile(datapath{1},'\ACOUSTIC_DATA\LSSS\LSSS_FILES\lsss\S2016837_PEros[3578].lsss');
-lsssfile{2} = fullfile(datapath{2},'\ACOUSTIC_DATA\LSSS\LSSS_FILES\lsss\S2016837_PEros[3578].lsss');
-lsssfile{3} = fullfile(datapath{3},'\ACOUSTIC_DATA\LSSS\LSSS_FILES\S2016114_PG.O.Sars[1016].lsss');
-lsssfile{4} = fullfile(datapath{4},'\ACOUSTIC_DATA\LSSS\LSSS_FILES\S2016114_PGOSARS_4174.lsss');
+lsssfile{2} = fullfile(datapath{2},'\ACOUSTIC_DATA\LSSS\LSSS_FILES\S2016114_PGOSARS_4174.lsss');
 
 dbdir{1} = fullfile(datapath{1},'\ACOUSTIC_DATA\LSSS\EXPORT\20160513\database\lsssExportDb\');
-dbdir{2} = fullfile(datapath{2},'\ACOUSTIC_DATA\LSSS\EXPORT\20160513\database\lsssExportDb\');
-dbdir{3} = fullfile(datapath{3},'\ACOUSTIC_DATA\LSSS\EXPORT\database\lsssExportDb');
-dbdir{4} = fullfile(datapath{4},'\ACOUSTIC_DATA\LSSS\EXPORT\database\lsssExportDb');
+dbdir{2} = fullfile(datapath{2},'\ACOUSTIC_DATA\LSSS\EXPORT\database\lsssExportDb');
 
 ek60file{1} = fullfile(datapath{1},'\ACOUSTIC_DATA\EK60\EK60_RAWDATA');
 ek60file{2} = fullfile(datapath{2},'\ACOUSTIC_DATA\EK60\EK60_RAWDATA');
-ek60file{3} = fullfile(datapath{3},'\ACOUSTIC_DATA\EK60\EK60_RAWDATA');
-ek60file{4} = fullfile(datapath{4},'\ACOUSTIC_DATA\EK60\EK60_RAWDATA');
 
 workfile{1} = fullfile(datapath{1},'\ACOUSTIC_DATA\LSSS\WORK');
 workfile{2} = fullfile(datapath{2},'\ACOUSTIC_DATA\LSSS\WORK');
-workfile{3} = fullfile(datapath{3},'\ACOUSTIC_DATA\LSSS\WORK');
-workfile{4} = fullfile(datapath{4},'\ACOUSTIC_DATA\LSSS\WORK');
 
 % Test if the files are available
-for i=1:4
+for i=1:length(lsssfile)
     if ~exist(lsssfile{i})
         disp([lsssfile{i},' does not exist'])
     end
@@ -58,18 +59,34 @@ for i=1:4
     end
 end
 
+%
+%
+
+
 %% Select survey
-%for An=2%1:2 %Both (1) existing and (2) empty db
-%    for i=1%1:4
-        %% Copy db (or set up empty db)
-An=2,i=1        
+for An=1:2 %Both (1) existing and (2) empty db
+   for i=1:length(lsssfile)
+        %% Copy db (or set up empty db) and work files 
         % Delete existing local database. This needs to be done prior to opening
         % lsss since lsss connect to the db at startup
+ 
+        % Wait until the API is dead (from last run)
+        exe=true;
+        while exe
+            try
+                webread([URLprefix 'lsss/application/ready']);
+                pause(2) % Wait 2 sec and try again
+            catch
+                exe=false;
+            end
+        end
         rmdir(fullfile(MainDir,'lsss_DB'), 's')
         % Copy new or existing database
         if A{An}
+            % Copy the database from ces.imr.no:
             copyfile(fullfile(dbdir{i},'*'),fullfile(MainDir,'lsss_DB'))
         else
+            % Copy an empty db:
             copyfile(fullfile(MainDir,'lsss_DB_empty'),fullfile(MainDir,'lsss_DB'))
         end
         
@@ -81,12 +98,16 @@ An=2,i=1
         exe=true;
         while exe
             try
-                webread([URLprefix 'lsss/application/config/xml']);
+                webread([URLprefix 'lsss/application/ready']);
                 exe=false;
             catch
-                pause(2)%Wait until the LSSS API is up and running
+                pause(2) % Wait 2 sec and try again
             end
         end
+        
+        % Connect to the dB
+        webwrite([URLprefix 'lsss/application/config/unit/DatabaseConf/connected'],...
+           struct('value', 'true'), weboptions('MediaType','application/json','Timeout',Inf));
         
         % Open the survey (.lsss file). Uses POST and a JSON body
         webwrite([URLprefix 'lsss/survey/open'], struct('value', lsssfile{i}), weboptions('MediaType','application/json','Timeout',Inf));
@@ -102,34 +123,40 @@ An=2,i=1
                 struct('value',workfile{i}), weboptions('MediaType','application/json','RequestMethod', 'post','Timeout',Inf));
             
             % List of raw files from the .lsss
-            r = webread([URLprefix 'lsss/data'],weboptions('Timeout',Inf));
-            nofiles = length(r.files);
+            firstIndex = 0;
+            lastIndex = webread([URLprefix 'lsss/survey/config/unit/DataConf/files'],weboptions('Timeout',Inf));
             
+%------------------------
+warning('Hack for testing only')            
+lastIndex = 200;
+firstIndex = 204;
+%------------------------
+
             % Read the files into LSSS
-            webwrite([URLprefix 'lsss/data/load/file/index/0?count=',num2str(nofiles)], struct('count', nofiles), weboptions('MediaType','application/json','Timeout',Inf));
-            
+            webwrite([URLprefix 'lsss/survey/config/unit/DataConf/files/selection'], struct('firstIndex', firstIndex,'lastIndex', lastIndex ), weboptions('MediaType','application/json','Timeout',Inf));
+
             % Wait until the files are read before moving on
             webread([URLprefix 'lsss/data/wait'], weboptions('RequestMethod', 'get','Timeout',Inf));
             
             % Store to local LSSS db
-            % Note that 38 needs to be an array, use [38 38]. This is not
-            % very beatiful, but it works 
+            % Note that 38 needs to be an array in the json object, I use
+            % [38 38] to force that. Not very beautiful, but it works 
             intpr = struct('resolution',.1,'quality',1,'frequencies',[38 38]);% Store resolution, quliaty (usually 1) and the frequencies.
             webwrite([URLprefix 'lsss/module/InterpretationModule/database'],intpr , weboptions('RequestMethod', 'post','MediaType','application/json','Timeout',Inf));
         end
         
         % Export from database (either filled from raw and work or copied from server)
-        % export using default parameters
-        % websave('LUF20_new.zip', [URLprefix 'lsss/database/report'])
         if A{An}
-            file=['./',reportfile{i},'_fromdb.zip'];
+            file=fullfile(ScratchDir,[reportfile{i},'_fromNMDdb.xml']);
         else
-            file=['./',reportfile{i},'_fromraw.zip'];
+            file=fullfile(ScratchDir,[reportfile{i},'_fromNMDraw.xml']);
         end
-        websave(file, [URLprefix 'lsss/database/report'], 'startDate', 0, 'startTime', 0, ...
-            'stopDate', 99991231, 'stopTime', 240000, 'reports',  20,weboptions('Timeout',Inf));
+        websave(file, [URLprefix 'lsss/database/report/20'],weboptions('Timeout',Inf));
         
         % Close LSSS
-        webread([URLprefix 'lsss/application/exit'], weboptions('RequestMethod', 'post','Timeout',Inf))
-%    end
-%end
+        try %For some reason this fails, but still closes LSSS...
+            webread([URLprefix 'lsss/application/exit'], weboptions('RequestMethod', 'post'))
+            wait(30)
+        end
+   end
+end
